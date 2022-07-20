@@ -1,0 +1,7 @@
+---
+- host: appservers
+  task:
+    - name: Pull file from source
+      git:
+        repo: 'https://foosball.example.org/path/to/repo.git'
+        dest: /var/www/html
