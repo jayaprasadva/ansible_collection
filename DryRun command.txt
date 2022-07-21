@@ -1,0 +1,1 @@
+ansible-playbook -C sampleplaybook.yml -i ansible_hosts
