@@ -1,0 +1,186 @@
+Copy content to a file using the copy module.
+
+If you need to copy a file to the target machines or servers use the src and dest in the copy module.
+
+---
+- hosts: webservers
+  become: true
+  tasks:
+  - name: Copy content to file
+    copy: content="Hello World Niranjan \n" dest=/home/ansible/niranjan.txt
+    
+    Replace all instances of a string.
+
+Using replace module we can replace a word with another word. The replace module will need 3 parameters i.e. ‘path’, ‘regexp’ (to find the particular word) and ‘replace’ (providing another word for replacement).
+
+- hosts: webservers
+  tasks:
+  - name: Replace example
+    replace:
+     path: /home/ansible/niranjan.txt
+     regexp: 'hello'
+     replace: "world"
+     
+     Archive or ZIP files and Folders
+
+Using the Ansible archive module you can compress files or folders to ‘zip’, ‘.gz’, or ‘bz2’ format.
+
+Note: The files or folders to be compressed should be available on the target servers and should have the packages for tar, bzip2, gzip, zip file installed on them. You can have a separate playbook task for installing these packages.
+
+---
+- hosts: all
+  become: true
+  tasks:
+  - name: Ansible zip file example
+    archive:
+     path: /home/ansible/niranjan.txt
+     dest: /home/ansible/niranjan.zip
+     format: zip
+     
+     ---
+- hosts: all
+  tasks:
+  - name: Ansible zip multiple files example
+  archive:
+   path:
+    - /home/ansible/niranjan1.txt
+    - /home/ansible/niranjan2.txt
+   dest: /home/ansible/niranjan.zip
+   format: zip
+The above playbook will zip multiple files to niranjan.zip file.
+
+- hosts: all
+  tasks:
+  - name: Ansible zip directory example
+    archive:
+     path:
+      - /home/ansible
+     dest: /home/ansible/niranjan.zip
+     format: zip
+The above playbook will zip all files in the /home/ansible directory.
+
+
+- hosts: all
+  tasks:
+  - name: Ansible timestamp filename example
+    command: touch niranjan{{ansible_date_time.date}}.log
+The above playbook will create a dynamic file based on the current date for E.g. niranjan2018-07-15.log
+
+
+Variables Example
+
+Variables are used to store values. In the below Example I am declaring the variable name with value niranjan. The output will be niranjan.
+
+- hosts: all
+  vars:
+ name: niranjan
+  tasks:
+  - name: Ansible Basic Variable Example
+    debug:
+     msg: "{{ name }}"
+We can also have an array or a list of variables as in the below Example.
+
+- hosts: all
+  vars:
+ name:
+   - Vasudevamurthy
+   - Niranjan
+ tasks:
+ - name: Ansible Array Example
+   debug:
+    msg: "{{ name[1] }}"
+The indexing of the array starts from ZERO (0). Hence the output in the above example will be Niranjan.
+
+
+Register Variables
+
+We can also capture the output of any task to a register variable.
+
+- hosts: all
+  tasks:
+  - name: Ansible register variable basic example
+    shell: "find *.txt"
+    args:
+     chdir: "/home/Ansible"
+    register: reg_output
+  - debug:
+     var: reg_output
+Note: To display – use the msg attribute and to capture any value use the var attribute in the – debug module
+
+
+ pre_tasks, post_tasks, and tags
+
+You can use pre_tasks and post_tasks to run certain tasks before or after running the main task.
+
+Normally in a playbook, you have so many tasks that are executed. What if you need to execute only a certain task? Tags are the answer to it. Let’s look at the below option which has all the 3 options. It has 2 tasks i.e. one with a TAG and one without a TAG.
+
+---
+- name: Pre , Post tasks and Tags example
+  hosts: localhost
+  become: true
+  tags:
+     - niranjan
+  pre_tasks:
+  - debug: msg="Started task with tag - niranjan.
+  tasks:
+   - name: Going to execute the main task
+     debug: msg="Currently in the target server"
+  post_tasks:
+  - debug: msg="Completed task with tag - niranjan.
+  - name: Play without tags
+    hosts: localhost
+    become: true
+    tasks:
+    - name: Command to list files
+      shell: ls -lrt > niranjan.txt
+Let’s see what happens while running the playbook with the –list-tags option
+
+$ ansible-playbook preposttagseg.yml --list-tags
+1.running the playbook with the --list-tags opt
+The output above looks better and clear. Play#1 has a tag niranjan but Play#2 does not have any tags.
+
+If you need to execute the tasks with the tag niranjan then the command to run would be:
+
+$ ansible-playbook preposttagseg.yml --tags niranjan
+The second play is not executed and the file is not created.
+Handlers
+
+Any software package will have configuration files and any changes to it will have effect only when the service is restarted. So you need to have the service set to restart. For E.g. In the below playbook if you run it multiple times the service will restart anyway irrespective of the changes done or not, which is not correct.
+
+---
+- hosts: webservers
+  tasks:
+  - name: Install the apache Package
+    yum: name=httpd state=latest
+  - name: Copy httpd configuration file
+    copy: src=/home/ansible/httpd.final dest=/etc/httpd/conf/httpd.conf
+  - name: Copy index.html file
+   copy: src=/home/ansible/index.html dest=/var/www/html
+# This service below is executed irrespective of changes done or not to any config files
+
+ - name: Start and Enable httpd service
+ service: name=httpd state=restarted enabled=yes
+So we need to restart service only if the changes are done to configuration files. Handlers provide that feature.
+
+So the proper flow with handlers would be to have a notify option.
+
+---
+- hosts: webservers
+  become: true
+  tasks:
+  - name: Install httpd package
+    yum: name=httpd state=latest
+  - name: Copy the httpd configuration file
+  copy: src=/home/ansible/httpd.final dest=/etc/httpd/conf/httpd.conf
+  - name: Copy index.html file
+  copy: src=/home/ansible/index.html dest=/var/www/html
+  notify:
+  - restart httpd
+  - name: Start httpd service
+  service: name=httpd state=started enabled=yes
+  handlers:
+  - name: restart httpd
+  service: name=httpd state=restarted
+So for the first time, Apache server will be installed and started. Even if you re-run the playbook without any changes done the httpd service will not restart as it is already started.
+
+If there are any changes to the config files or if the HTML files are changed then once the playbook is run the handler is notified to restart the service. The name in the notify section and handlers should be the same. The handler is written like any other task but is called only if there are changes.
