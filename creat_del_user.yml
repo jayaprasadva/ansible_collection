@@ -1,0 +1,15 @@
+---
+- hosts: webservers
+  become: true
+  tasks:
+  - name: Create User
+    user: name=niranjan password=niranjan groups=ansible shell=/bin/bash
+    
+    
+    ---
+- hosts: webservers
+  become: true
+  tasks:
+  - name: Remove User
+    user:
+    name=niranjan state=absent remove=yes force=yes
