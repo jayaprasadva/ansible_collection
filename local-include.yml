@@ -1,0 +1,62 @@
+- hosts: localhost
+  connection: local
+  become: true
+
+  pre_tasks:
+    - name: update repositories
+      apt:
+        update_cache: yes
+      changed_when: False
+
+  tasks:
+    - include: tasks/users.yml
+    - include: tasks/cron.yml
+    - include: tasks/packages.yml
+    
+    
+    
+    
+    
+    tasks/cron.yml
+    
+- name: install cron job (ansible-pull)
+  cron:
+    user: ansible
+    name: "ansible provision"
+    minute: "*/10"
+    job: "/usr/bin/ansible-pull -o -U https://github.com/jlacroix82/ansible_pull_tutorial.git > /dev/null"
+    
+  
+  
+  
+  tasks/packages.yml
+  - name: Install packages
+    apt:
+      name:
+        - htop
+        - mc
+        - tmux
+        
+        
+  tasks/users.yml
+  
+  
+  
+  - name: create ansible user
+  user:
+    name: ansible
+    system: yes
+
+- name: copy sudoers_ansible
+  copy:
+    src: files/sudoers_ansible
+    dest: /etc/sudoers.d/ansible
+    owner: root
+    group: root
+    mode: 0440
+        
+        
+        
+        
+        
+        
