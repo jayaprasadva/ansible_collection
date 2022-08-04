@@ -1,0 +1,13 @@
+---
+- name: Ansible Create user functionlity module demo
+  hosts: all
+	remote_user: user
+  tasks:
+    - name: Add the user 'testuser' with a specific uid and a primary group of 'sudo'
+      ansible.builtin.user:
+        name: testuser
+        comment: TestUser
+        uid: 1077
+        group: user
+        createhome: yes        # Defaults to yes
+        home: /home/testuser    # Defaults to /home/<username>
