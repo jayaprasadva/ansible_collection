@@ -1,0 +1,19 @@
+---
+- name: user module demo
+  hosts: all
+  become: true
+  tasks:
+    - name: user example present
+      ansible.builtin.user:
+        name: testuser
+        password: "{{ 'password' | password_hash('sha512', 'user') }}"
+        groups:
+          - testuser
+          - sudo
+        state: "present"
+        shell: "/bin/bash"
+        system: false
+        create_home: true
+        home: "/home/user"
+        comment: "Ansible example"
+        generate_ssh_key: true
