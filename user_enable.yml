@@ -1,0 +1,13 @@
+---
+- name: user enable
+  hosts: all
+  become: true
+  vars:
+    myuser: "testuser"
+  tasks:
+    - name: enable user
+      ansible.builtin.user:
+        name: "{{ myuser }}"
+        state: present
+        password_lock: false
+        shell: "/bin/bash"
