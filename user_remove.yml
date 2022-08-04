@@ -1,0 +1,15 @@
+---
+- name: user remove
+  hosts: all
+  become: true
+  tasks:
+    - name: user remove
+      ansible.builtin.user:
+        name: testuser
+        state: "absent"
+        remove: true
+
+    - name: delete group
+      ansible.builtin.group:
+        name: testuser
+        state: absent
