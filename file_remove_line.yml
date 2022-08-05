@@ -1,0 +1,18 @@
+---
+  - name: Examples of lineinfile
+    hosts: all
+    
+    tasks:
+      - name: "Example1: Validate if a String or line is present in the file"
+        become: yes
+        become_user: root
+        tags: example1
+        lineinfile:
+          path: /etc/httpd/conf/httpd.conf
+          # String to Search
+          regexp: "LogLevel [Dd]ebug" 
+          # State is set to Absent to remove if the Searching Line is found
+          state: absent
+          backup: yes
+        
+        register: example1out
