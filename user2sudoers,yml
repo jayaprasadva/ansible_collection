@@ -1,0 +1,5 @@
+- name: sudo without password for wheel group
+  copy:
+    content: 'ansibleuser ALL=(ALL:ALL) NOPASSWD:ALL'
+    dest: /etc/sudoers.d/ansibleuser_nopasswd
+    mode: 0440
